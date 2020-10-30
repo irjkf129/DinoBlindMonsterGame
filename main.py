@@ -11,25 +11,28 @@ pygame.display.set_caption("Dyno")
 
 clock = pygame.time.Clock()
 
-pygame.mixer.music.load(r'untitled.mp3')
+pictures = r'pictures/'
+sounds = r'sounds/'
+
+pygame.mixer.music.load(sounds + r'untitled.mp3')
 pygame.mixer.music.set_volume(0.3)
 
-jump_sound = pygame.mixer.Sound('pounce-achivment.wav')
+jump_sound = pygame.mixer.Sound(sounds + 'pounce-achivment.wav')
 
-cactus_img = [pygame.image.load(r"cactus1.png"),pygame.image.load(r"cactus2.png"),pygame.image.load(r"cactus3.png")]
+cactus_img = [pygame.image.load(pictures + r"cactus1.png"),pygame.image.load(pictures + r"cactus2.png"),pygame.image.load(pictures + r"cactus3.png")]
 cactus_options = [20,430,30,450,25,420]
 
-dino_img = [pygame.image.load(r"dinoblindmonster1.png"),pygame.image.load(r"dinoblindmonster2.png"),pygame.image.load(r"dinoblindmonster3.png"),pygame.image.load(r"dinoblindmonster5.png"),pygame.image.load(r"dinoblindmonster4.png"),pygame.image.load(r"dinoblindmonster6.png")]
+dino_img = [pygame.image.load(pictures + r"dinoblindmonster1.png"),pygame.image.load(pictures + r"dinoblindmonster2.png"),pygame.image.load(pictures + r"dinoblindmonster3.png"),pygame.image.load(pictures + r"dinoblindmonster5.png"),pygame.image.load(pictures + r"dinoblindmonster4.png"),pygame.image.load(pictures + r"dinoblindmonster6.png")]
 
-stoun_img = [pygame.image.load(r"stoun1.png"),pygame.image.load(r"stoun2.png")]
+stoun_img = [pygame.image.load(pictures + r"stoun1.png"),pygame.image.load(pictures + r"stoun2.png")]
 
-cloud_img = [pygame.image.load(r"cloud1.png"),pygame.image.load(r"cloud2.png")]
+cloud_img = [pygame.image.load(pictures + r"cloud1.png"),pygame.image.load(pictures + r"cloud2.png")]
 
-jump_img = [pygame.image.load(r"dinoblindmonsterjump1.png"),pygame.image.load(r"dinoblindmonsterjump2.png")]
+jump_img = [pygame.image.load(pictures + r"dinoblindmonsterjump1.png"),pygame.image.load(pictures + r"dinoblindmonsterjump2.png")]
 
 scores = 0
 above_cactus = []
-health_img = pygame.image.load('hp.png')
+health_img = pygame.image.load(pictures + r'hp.png')
 health_img = pygame.transform.scale(health_img,(30,30))
 
 try:
@@ -133,7 +136,7 @@ class Dino():
     def check_health(self):
         self.health -= 1
         if self.health == 0:
-            death_sound = pygame.mixer.Sound('depth.wav')
+            death_sound = pygame.mixer.Sound(sounds + 'depth.wav')
             pygame.mixer.Sound.play(death_sound)
             return False
         return True
@@ -169,7 +172,7 @@ def run_game():
     game = True
     cactus_arr = []
     create_cactus_arr(cactus_arr)
-    land = pygame.image.load(r"Land.png")
+    land = pygame.image.load(pictures + r"Land.png")
     stone,cloud = open_random_object()
     heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) #random.randrange(280,450) random.randrange(700, 750)
     while game:
@@ -228,32 +231,7 @@ def count_scores(barriers, user):
     if user.jump_counter == -30:
         scores += len(above_cactus)
         above_cactus.clear()
-    '''
-    above_cactus = 0
-    
-    if -20 <= user.jump_counter <= 20:
-        for barrier in barriers:
-            if user.y + user.height - 5 <= barrier.y:
-                if barrier.x <= user.x <= barrier.x + barrier.width:
-                    above_cactus += 1
-                elif barrier.x <= user.x <= barrier.x + barrier.width:
-                    above_cactus += 1
-        max_above = max(max_above,above_cactus)
-    else:
-        if user.jump_counter == -30:
-            scores += max_above
-            max_above = 0
-    if not above_cactus:
-        for barrier in barriers:
-            if barrier.x <= user.x + user.width / 2 <= barrier.x + barrier.width:
-                if user.y + user.height - 5 <= barrier.y:
-                    above_cactus = True
-                    break
-    if above_cactus:
-        if user.jump_counter == -30:
-            scores += 1
-            above_cactus = False
-    '''
+   
 def create_cactus_arr(array):
     choice = random.randrange(0,3)
     img = cactus_img[choice]
