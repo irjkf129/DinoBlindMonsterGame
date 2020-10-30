@@ -55,6 +55,29 @@ def object_return(objects, obj):
 
     obj.return_self(radius,height,width,img )
 
+class Button():
+    def __init__(self,width,height):
+        self.width = width
+        self.height = height
+        self.inactive_color = (13,162,58)
+        self.active_color = (23,204,58)
+    def draw(self,x,y,message, action = None):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if (x < mouse[0] < x + self.width):
+            if (y < mouse[1] < y + self.height):
+                pygame.draw.rect(display, self.active_color,(x,y,self.width,self.height))
+
+                if (click[0]== 1 and action is not None):
+                    action()
+            else:
+                pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
+        else:
+            pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
+
+        print_text(message,x + 10, y + 10)
+
 class Dino():
     def __init__(self,x=display_width // 3,y = display_height, width = 80, height = 105, image = dino_img):
         self.x = x
@@ -174,7 +197,8 @@ def run_game():
     create_cactus_arr(cactus_arr)
     land = pygame.image.load(pictures + r"Land.png")
     stone,cloud = open_random_object()
-    heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) #random.randrange(280,450) random.randrange(700, 750)
+    heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
+    button = Button(50,50)
     while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -186,6 +210,7 @@ def run_game():
         move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
+        button.draw(20,70,"wow",None)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
