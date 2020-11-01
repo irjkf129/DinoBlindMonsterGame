@@ -13,6 +13,7 @@ clock = pygame.time.Clock()
 
 pictures = r'pictures/'
 sounds = r'sounds/'
+shrifts = r'shrifts/'
 
 pygame.mixer.music.load(sounds + r'untitled.mp3')
 pygame.mixer.music.set_volume(0.3)
@@ -189,7 +190,10 @@ class Object():
 
 dino = Dino()
 
-def run_game():
+def show_menu():
+    
+
+def game_cycle():
     global dino
     pygame.mixer.music.play(-1)
     game = True
@@ -198,7 +202,7 @@ def run_game():
     land = pygame.image.load(pictures + r"Land.png")
     stone,cloud = open_random_object()
     heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
-    button = Button(50,50)
+    button = Button(160,50)
     while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -210,7 +214,7 @@ def run_game():
         move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
-        button.draw(20,70,"wow",None)
+        button.draw(20,70,"I really button!!",None)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -321,7 +325,7 @@ def move_objects(stone,cloud):
         cloud_im = cloud_img[choice]
         cloud.return_self(display_width, random.randrange(10,200),cloud.width, cloud_im)
 
-def print_text(message,x,y, font_color = (0,0,0), font_type = 'shrift.ttf', font_size = 30):
+def print_text(message,x,y, font_type = shrifts + 'shrift.ttf', font_color = (0,0,0), font_size = 30):
     font_type = pygame.font.Font(font_type,font_size)
     text = font_type.render(message, True, font_color)
     display.blit(text,(x,y))
@@ -372,7 +376,7 @@ def game_over():
         pygame.display.update()
         clock.tick(15)
 
-while run_game():
+while game_cycle():
     dino.jump_counter = 30
     dino.make_jump = False
     dino.y = display_height - 205
