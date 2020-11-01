@@ -75,7 +75,7 @@ class Button():
                         pygame.quit()
                         quit()
                     action()
-           #else:
+            #else:
                 #pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
         #else:
             #pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
@@ -198,8 +198,8 @@ def show_menu():
 
     show = True
 
-    start_btn = Button(300,80)
-    quit_btn = Button(120, 80)
+    start_btn = Button(300,70)
+    quit_btn = Button(120, 70)
 
     while show:
         for event in pygame.event.get():
@@ -377,9 +377,20 @@ def pause():
         clock.tick(15)
     pygame.mixer.music.unpause()
 
+def restart_game():
+    global dino, scores
+    dino.jump_counter = 30
+    dino.make_jump = False
+    dino.y = display_height - 205
+    scores = 0
+    dino.health = 2
+    start_game()
+
 def game_over():
     global scores, max_scores
     pygame.mixer.music.stop()
+    restart_btn = Button(170,50)
+    quit_btn = Button(70, 50)
     if scores > max_scores:
         f = open('scores.txt','w')
         max_scores = scores
@@ -391,16 +402,12 @@ def game_over():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
-        keys = pygame.key.get_pressed()
             
-        print_text('Game Over',200,260)
-        print_text('Max score : ' + str(max_scores),330,290)
-        print_text('Your score : ' + str(scores),330,320)
-        if keys[pygame.K_ESCAPE]:
-            return False
-        if keys[pygame.K_RETURN]:
-            return True
+        print_text('Game Over',345,160)
+        print_text('Max score : ' + str(max_scores),330,190)
+        print_text('Your score : ' + str(scores),330,220)
+        restart_btn.draw(300,270,'Restart game',restart_game, 50)
+        quit_btn.draw(350,320,'Quit',quit, 50)
 
         pygame.display.update()
         clock.tick(15)
