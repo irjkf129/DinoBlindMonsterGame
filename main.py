@@ -62,22 +62,25 @@ class Button():
         self.height = height
         self.inactive_color = (13,162,58)
         self.active_color = (23,204,58)
-    def draw(self,x,y,message, action = None):
+    def draw(self,x,y,message, action = None, font_size = 30, shrift = shrifts + r'shrift.ttf'):
         mouse = pygame.mouse.get_pos()
         click = pygame.mouse.get_pressed()
 
         if (x < mouse[0] < x + self.width):
             if (y < mouse[1] < y + self.height):
-                pygame.draw.rect(display, self.active_color,(x,y,self.width,self.height))
+                #pygame.draw.rect(display, self.active_color,(x,y,self.width,self.height))
 
                 if (click[0]== 1 and action is not None):
+                    if action == quit:
+                        pygame.quit()
+                        quit()
                     action()
-            else:
-                pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
-        else:
-            pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
+           #else:
+                #pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
+        #else:
+            #pygame.draw.rect(display, self.inactive_color,(x,y,self.width,self.height))
 
-        print_text(message,x + 10, y + 10)
+        print_text(message = message,x = x + 10,y = y, font_size = font_size, font_type = shrift)
 
 class Dino():
     def __init__(self,x=display_width // 3,y = display_height, width = 80, height = 105, image = dino_img):
@@ -191,7 +194,33 @@ class Object():
 dino = Dino()
 
 def show_menu():
-    
+    menu_bg = pygame.image.load(pictures + 'menu_bg_name.png')
+
+    show = True
+
+    start_btn = Button(300,80)
+    quit_btn = Button(120, 80)
+
+    while show:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        display.blit(menu_bg,(0,0))
+        start_btn.draw(250,200,'Start game', start_game, 50, shrifts + 'main_menu_shrift.ttf')
+        quit_btn.draw(320, 270, 'Quit', quit, 50, shrifts + 'main_menu_shrift.ttf')
+
+        pygame.display.update()
+        clock.tick(60)
+
+def start_game():
+    global scores, dino
+    while game_cycle():
+        dino.jump_counter = 30
+        dino.make_jump = False
+        dino.y = display_height - 205
+        scores = 0
+        dino.health = 2
 
 def game_cycle():
     global dino
@@ -202,7 +231,7 @@ def game_cycle():
     land = pygame.image.load(pictures + r"Land.png")
     stone,cloud = open_random_object()
     heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
-    button = Button(160,50)
+    #button = Button(160,50)
     while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -214,7 +243,7 @@ def game_cycle():
         move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
-        button.draw(20,70,"I really button!!",None)
+        #button.draw(20,70,"I really button!!",None)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -365,7 +394,7 @@ def game_over():
 
         keys = pygame.key.get_pressed()
             
-        print_text('Game Over. Press enter to play game or esc to exit',200,260)
+        print_text('Game Over',200,260)
         print_text('Max score : ' + str(max_scores),330,290)
         print_text('Your score : ' + str(scores),330,320)
         if keys[pygame.K_ESCAPE]:
@@ -376,13 +405,7 @@ def game_over():
         pygame.display.update()
         clock.tick(15)
 
-while game_cycle():
-    dino.jump_counter = 30
-    dino.make_jump = False
-    dino.y = display_height - 205
-    scores = 0
-    dino.health = 2
-    
+show_menu()
 
 pygame.quit()
 quit()
