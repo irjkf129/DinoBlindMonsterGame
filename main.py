@@ -214,16 +214,16 @@ def show_menu():
         clock.tick(60)
 
 def start_game():
-    global scores, dino
     while game_cycle():
-        dino.jump_counter = 30
-        dino.make_jump = False
-        dino.y = display_height - 205
-        scores = 0
-        dino.health = 2
+        pass
 
 def game_cycle():
     global dino
+    dino.jump_counter = 30
+    dino.make_jump = False
+    dino.y = display_height - 205
+    scores = 0
+    dino.health = 2
     pygame.mixer.music.play(-1)
     game = True
     cactus_arr = []
@@ -377,15 +377,6 @@ def pause():
         clock.tick(15)
     pygame.mixer.music.unpause()
 
-def restart_game():
-    global dino, scores
-    dino.jump_counter = 30
-    dino.make_jump = False
-    dino.y = display_height - 205
-    scores = 0
-    dino.health = 2
-    start_game()
-
 def game_over():
     global scores, max_scores
     pygame.mixer.music.stop()
@@ -406,8 +397,8 @@ def game_over():
         print_text('Game Over',345,160)
         print_text('Max score : ' + str(max_scores),330,190)
         print_text('Your score : ' + str(scores),330,220)
-        restart_btn.draw(300,270,'Restart game',restart_game, 50)
-        quit_btn.draw(350,320,'Quit',quit, 50)
+        restart_btn.draw(300,270,'Restart game',start_game, 50)
+        quit_btn.draw(350,320,'Quit',show_menu, 50)
 
         pygame.display.update()
         clock.tick(15)
