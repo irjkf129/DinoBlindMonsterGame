@@ -15,9 +15,6 @@ pictures = r'pictures/'
 sounds = r'sounds/'
 shrifts = r'shrifts/'
 
-pygame.mixer.music.load(sounds + r'untitled.mp3')
-pygame.mixer.music.set_volume(0.3)
-
 jump_sound = pygame.mixer.Sound(sounds + 'pounce-achivment.wav')
 
 cactus_img = [pygame.image.load(pictures + r"cactus1.png"),pygame.image.load(pictures + r"cactus2.png"),pygame.image.load(pictures + r"cactus3.png")]
@@ -31,10 +28,15 @@ cloud_img = [pygame.image.load(pictures + r"cloud1.png"),pygame.image.load(pictu
 
 jump_img = [pygame.image.load(pictures + r"dinoblindmonsterjump1.png"),pygame.image.load(pictures + r"dinoblindmonsterjump2.png")]
 
+bullet_img = pygame.image.load(pictures + r'bullet.png')
+bullet_img = pygame.transform.scale(bullet_img,(25,8))
+
 scores = 0
 above_cactus = []
 health_img = pygame.image.load(pictures + r'hp.png')
 health_img = pygame.transform.scale(health_img,(30,30))
+
+cooldown = 0
 
 try:
     f = open('scores.txt','r')
@@ -55,6 +57,19 @@ def object_return(objects, obj):
     height = cactus_options[choice*2+1]
 
     obj.return_self(radius,height,width,img )
+
+class Bullet():
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+        self.speed = 8
+
+    def move(self):
+        self.x += self.speed
+        if(self.x <= display_width):
+            display.blit(bullet_img, (self.x, self.y))
+            return True
+        return False
 
 class Button():
     def __init__(self,width,height):
@@ -195,7 +210,10 @@ dino = Dino()
 
 def show_menu():
     menu_bg = pygame.image.load(pictures + 'menu_bg_name.png')
-
+    
+    pygame.mixer.music.load(sounds + r'pyro.mp3')
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
     show = True
 
     start_btn = Button(300,70)
@@ -214,24 +232,28 @@ def show_menu():
         clock.tick(60)
 
 def start_game():
+    
+    pygame.mixer.music.load(sounds + r'untitled.mp3')
+    pygame.mixer.music.set_volume(0.3)
+    pygame.mixer.music.play(-1)
     while game_cycle():
         pass
 
 def game_cycle():
-    global dino
+    global dino, scores, cooldown
+    cooldown = 0
     dino.jump_counter = 30
     dino.make_jump = False
     dino.y = display_height - 205
     scores = 0
     dino.health = 2
-    pygame.mixer.music.play(-1)
     game = True
     cactus_arr = []
     create_cactus_arr(cactus_arr)
     land = pygame.image.load(pictures + r"Land.png")
     stone,cloud = open_random_object()
     heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
-    #button = Button(160,50)
+    btn_bullets = []
     while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -243,13 +265,23 @@ def game_cycle():
         move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
-        #button.draw(20,70,"I really button!!",None)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             dino.make_jump = True
         if keys[pygame.K_ESCAPE]:
             pause()
+
+        if not cooldown:
+            if keys[pygame.K_x]:
+                btn_bullets.append(Bullet(dino.x + dino.width - 30, dino.y + 60))
+                cooldown = 50
+        else:
+            cooldown -= 1
+
+        for bullet in btn_bullets:
+            if not bullet.move():
+                btn_bullets.remove(bullet)
 
         if dino.make_jump:
             dino.make_jump = True
