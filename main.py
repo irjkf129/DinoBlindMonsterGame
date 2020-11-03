@@ -233,7 +233,7 @@ def show_menu():
 
 def start_game():
     
-    pygame.mixer.music.load(sounds + r'untitled.mp3')
+    pygame.mixer.music.load(sounds + r'game_sound.mp3')
     pygame.mixer.music.set_volume(0.3)
     pygame.mixer.music.play(-1)
     while game_cycle():
