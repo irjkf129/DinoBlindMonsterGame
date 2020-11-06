@@ -15,21 +15,27 @@ pictures = r'pictures/'
 sounds = r'sounds/'
 shrifts = r'shrifts/'
 
+land = pygame.image.load(pictures + r"bg_desert.png")
+
+land_bg = pygame.transform.smoothscale(land,(display_width,display_height))
 jump_sound = pygame.mixer.Sound(sounds + 'pounce-achivment.wav')
 
 cactus_img = [pygame.image.load(pictures + r"cactus1.png"),pygame.image.load(pictures + r"cactus2.png"),pygame.image.load(pictures + r"cactus3.png")]
 cactus_options = [20,430,30,450,25,420]
 
 dino_img = [pygame.image.load(pictures + r"dinoblindmonster1.png"),pygame.image.load(pictures + r"dinoblindmonster2.png"),pygame.image.load(pictures + r"dinoblindmonster3.png"),pygame.image.load(pictures + r"dinoblindmonster5.png"),pygame.image.load(pictures + r"dinoblindmonster4.png"),pygame.image.load(pictures + r"dinoblindmonster6.png")]
-
+'''
 stoun_img = [pygame.image.load(pictures + r"stoun1.png"),pygame.image.load(pictures + r"stoun2.png")]
 
 cloud_img = [pygame.image.load(pictures + r"cloud1.png"),pygame.image.load(pictures + r"cloud2.png")]
-
+'''
 jump_img = [pygame.image.load(pictures + r"dinoblindmonsterjump1.png"),pygame.image.load(pictures + r"dinoblindmonsterjump2.png")]
 
-bullet_img = pygame.image.load(pictures + r'bullet.png')
-bullet_img = pygame.transform.scale(bullet_img,(25,8))
+bt_img = [pygame.image.load(pictures + r'blt1.png'),pygame.image.load(pictures + r'blt2.png'),pygame.image.load(pictures + r'blt3.png'),pygame.image.load(pictures + r'blt4.png'),pygame.image.load(pictures + r'blt5.png'),pygame.image.load(pictures + r'blt6.png'),pygame.image.load(pictures + r'blt7.png'),pygame.image.load(pictures + r'blt8.png')]
+bullet_img = []
+for b in bt_img:
+    b = pygame.transform.scale(b,(30,30))
+    bullet_img.append(b)
 
 scores = 0
 above_cactus = []
@@ -56,18 +62,22 @@ def object_return(objects, obj):
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
 
-    obj.return_self(radius,height,width,img )
+    obj.return_self(radius,height - 10,width,img )
 
 class Bullet():
     def __init__(self,x,y):
         self.x = x
         self.y = y
         self.speed = 8
+        self.index = 0
 
     def move(self):
         self.x += self.speed
         if(self.x <= display_width):
-            display.blit(bullet_img, (self.x, self.y))
+            self.index += 1
+            if (self.index == 8 * 5):
+                self.index = 0
+            display.blit(bullet_img[self.index // 5], (self.x, self.y))
             return True
         return False
 
@@ -100,7 +110,7 @@ class Button():
 class Dino():
     def __init__(self,x=display_width // 3,y = display_height, width = 80, height = 105, image = dino_img):
         self.x = x
-        self.y = y - 100 - height
+        self.y = y - 110 - height
         self.width = width
         self.height = height
         self.image = image
@@ -192,7 +202,7 @@ class Object():
         self.image = image
     def move(self):
         if(self.x >= -self.width):
-            #pygame.draw.rect(display,(224,121,31),(self.x,self.y,self.width,70))
+            #pygame.draw.rect(display,(0,0,0),(self.x,self.y,self.width,70))
             display.blit(self.image,(self.x,self.y))
             self.x -= self.speed
             return True
@@ -240,18 +250,18 @@ def start_game():
         pass
 
 def game_cycle():
-    global dino, scores, cooldown
+    global dino, scores, cooldown, land_bg
+    x = display_width
     cooldown = 0
     dino.jump_counter = 30
     dino.make_jump = False
-    dino.y = display_height - 205
+    dino.y = display_height - 215
     scores = 0
     dino.health = 2
     game = True
     cactus_arr = []
     create_cactus_arr(cactus_arr)
-    land = pygame.image.load(pictures + r"Land.png")
-    stone,cloud = open_random_object()
+    #stone,cloud = open_random_object()
     heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
     btn_bullets = []
     while game:
@@ -259,10 +269,14 @@ def game_cycle():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
-        display.blit(land,(0,0))        
+        x -= 4
+        if x == 0:
+            x = display_width
+        x_rel = x % display_width
+        display.blit(land_bg,(x_rel,0))   
+        display.blit(land_bg,(x_rel - display_width,0))     
         draw_cactus_array(cactus_arr)
-        move_objects(stone,cloud)
+        #move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
 
@@ -274,7 +288,7 @@ def game_cycle():
 
         if not cooldown:
             if keys[pygame.K_x]:
-                btn_bullets.append(Bullet(dino.x + dino.width - 30, dino.y + 60))
+                btn_bullets.append(Bullet(dino.x + dino.width - 35, dino.y + 50))
                 cooldown = 50
         else:
             cooldown -= 1
@@ -289,7 +303,7 @@ def game_cycle():
             
         #pygame.draw.rect(display,(247,240,22),(user_x,user_y,user_width - 10,user_height))
         
-        clock.tick(80)
+        clock.tick(70)
         if dino.check(cactus_arr):
                 #pygame.mixer.music.stop()
             game = False
@@ -327,19 +341,19 @@ def create_cactus_arr(array):
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 50, height, width, 4, img))
+    array.append(Object(display_width + 50, height - 10, width, 4, img))
 
     choice = random.randrange(0,3)
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 300, height,  width, 4, img))
+    array.append(Object(display_width + 300, height - 10,  width, 4, img))
 
     choice = random.randrange(0,3)
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 600, height, width, 4, img))
+    array.append(Object(display_width + 600, height - 10, width, 4, img))
 
 def find_radius(array):
     maximum = max(array[0].x,array[1].x,array[2].x)
@@ -362,7 +376,7 @@ def draw_cactus_array(array):
         check = cactus.move()
         if(not check):
             object_return(array,cactus)
-
+'''
 def open_random_object():
     choice = random.randrange(0,2)
     st_img = stoun_img[choice]
@@ -385,7 +399,7 @@ def move_objects(stone,cloud):
         choice = random.randrange(0,2)
         cloud_im = cloud_img[choice]
         cloud.return_self(display_width, random.randrange(10,200),cloud.width, cloud_im)
-
+'''
 def print_text(message,x,y, font_type = shrifts + 'shrift.ttf', font_color = (0,0,0), font_size = 30):
     font_type = pygame.font.Font(font_type,font_size)
     text = font_type.render(message, True, font_color)
