@@ -1,6 +1,9 @@
 import pygame
 import random
 
+BULLET = 1
+HEART = 0
+
 pygame.init()
 
 display_width = 800
@@ -21,7 +24,7 @@ land_bg = pygame.transform.smoothscale(land,(display_width,display_height))
 jump_sound = pygame.mixer.Sound(sounds + 'pounce-achivment.wav')
 
 cactus_img = [pygame.image.load(pictures + r"cactus1.png"),pygame.image.load(pictures + r"cactus2.png"),pygame.image.load(pictures + r"cactus3.png")]
-cactus_options = [20,430,30,450,25,420]
+cactus_options = [20,70,30,50,25,80]
 
 dino_img = [pygame.image.load(pictures + r"dinoblindmonster1.png"),pygame.image.load(pictures + r"dinoblindmonster2.png"),pygame.image.load(pictures + r"dinoblindmonster3.png"),pygame.image.load(pictures + r"dinoblindmonster5.png"),pygame.image.load(pictures + r"dinoblindmonster4.png"),pygame.image.load(pictures + r"dinoblindmonster6.png")]
 '''
@@ -62,24 +65,60 @@ def object_return(objects, obj):
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
 
-    obj.return_self(radius,height - 10,width,img )
+    obj.return_self(radius, display_height - 110,width,height,img )
 
 class Bullet():
     def __init__(self,x,y):
         self.x = x
         self.y = y
-        self.speed = 8
+        self.speed_x = 8
+        self.speed_y = 0
+        self.dest_x = 0
+        self.dest_y = 0
         self.index = 0
 
+        self.check = True
     def move(self):
-        self.x += self.speed
+        self.x += self.speed_x
         if(self.x <= display_width):
             self.index += 1
             if (self.index == 8 * 5):
                 self.index = 0
-            display.blit(bullet_img[self.index // 5], (self.x, self.y))
-            return True
+            if(self.check):
+                display.blit(bullet_img[self.index // 5], (self.x, self.y))
+                return True
         return False
+    def find_path(self, dest_x, dest_y):
+        self.dest_x = dest_x
+        self.dest_y = dest_y
+
+        delta_x = dest_x - self.x
+        count_up = delta_x // self.speed_x
+        if(self.y >= dest_y):
+            delta_y = self.y - dest_y
+            self.speed_y = delta_y / count_up
+        else:
+            delta_y = dest_y - self.y
+            self.speed_y = -(delta_y / count_up)
+    def move_to(self):
+        self.x += self.speed_x
+        self.y -= self.speed_y
+        if(self.x <= self.dest_x): #and (self.y >= self.dest_y): 
+            self.index += 1
+            if (self.index == 8 * 5):
+                self.index = 0
+            if(self.check):
+                display.blit(bullet_img[self.index // 5], (self.x, self.y))
+                return True
+        return False
+    def check_bullet(self,cactus_arr):
+        for cactus in cactus_arr:
+            if (cactus.x <= self.x + 30 <= cactus.x + cactus.width):
+                if(cactus.y <= self.y <= cactus.y + cactus.height) or (cactus.y <= self.y + 30 <= cactus.y + cactus.height):
+                    object_return(cactus_arr,cactus)
+                    self.check = False
+                    
+
 
 class Button():
     def __init__(self,width,height):
@@ -119,19 +158,32 @@ class Dino():
 
         self.jump_counter = 30
         self.health = 2
-        self.make_jump = False
-    def hearts_plus(self, heart):
-        if heart.x <= -heart.width:
-            radius = display_width + random.randrange(1000,2000)
-            heart.return_self(radius,random.randrange(280,450),heart.width, heart.image)
 
-        if(self.x <= heart.x <= self.x + self.width):
-            if (self.y <= heart.y + 30 <= self.y + self.height) or (self.y <= heart.y <= self.y + self.height):
-                if(self.health < 3):
-                    self.health += 1
+        self.bullets = 1
+
+        self.make_jump = False
+    def stat_plus(self, stat, stat_type):
+        if stat.x <= -stat.width:
+            if(stat_type == HEART):
+                radius = display_width + random.randrange(6000,8000)
+            else:
+                radius = display_width + random.randrange(4000,5500)
+            stat.return_self(radius,random.randrange(280,450),stat.width, 30, stat.image)
+
+        if(self.x <= stat.x <= self.x + self.width):
+            if (self.y <= stat.y + 30 <= self.y + self.height) or (self.y <= stat.y <= self.y + self.height):
+                if (stat_type == HEART):
+                    if(self.health < 3):
+                        self.health += 1
+                else:
+                    if(self.bullets < 5):
+                        self.bullets += 1
                 
-                radius = display_width + random.randrange(2500,4000)
-                heart.return_self(radius,random.randrange(280,450),heart.width, heart.image)
+                if(stat_type == HEART):
+                    radius = display_width + random.randrange(6000,8000)
+                else:
+                    radius = display_width + random.randrange(4000,5500)
+                stat.return_self(radius,random.randrange(280,450),stat.width, 30, stat.image)
 
     def check(self,barriers):
         for barrier in barriers:
@@ -192,12 +244,22 @@ class Dino():
             pygame.mixer.Sound.play(death_sound)
             return False
         return True
+    def shot(self, btn_bullets, ms_bullets, cactus_arr):       
+        for bullet in btn_bullets:
+            bullet.check_bullet(cactus_arr)
+            if not bullet.move():
+                btn_bullets.remove(bullet)
 
+        for bullet in ms_bullets:
+            bullet.check_bullet(cactus_arr)
+            if not bullet.move_to():
+                ms_bullets.remove(bullet)
 class Object():
-    def __init__(self,x,y,width, speed, image):
+    def __init__(self, x, y, width, height, speed, image):
         self.x = x
-        self.y = y
+        self.y = y - height
         self.width = width
+        self.height = height
         self.speed = speed
         self.image = image
     def move(self):
@@ -209,10 +271,10 @@ class Object():
         else:
             self.x = display_width + 100 + random.randrange(-80,60)
             return False
-    def return_self(self, radius, y, width, image):
+    def return_self(self, radius, y, width, height, image):
         self.x = radius
         self.image = image
-        self.y = y
+        self.y = y - height
         self.width = width
         display.blit(self.image,(self.x,self.y))
 
@@ -252,8 +314,9 @@ def start_game():
 def game_cycle():
     global dino, scores, cooldown, land_bg
     x = display_width
-    cooldown = 0
+    cooldown = 15
     dino.jump_counter = 30
+    dino.bullets = 1
     dino.make_jump = False
     dino.y = display_height - 215
     scores = 0
@@ -262,8 +325,12 @@ def game_cycle():
     cactus_arr = []
     create_cactus_arr(cactus_arr)
     #stone,cloud = open_random_object()
-    heart = Object(display_width + random.randrange(280,450), random.randrange(1000, 2000), 30, 4, health_img) 
+    heart = Object(display_width + random.randrange(4000, 6000), random.randrange(280,450),30, 30, 4, health_img) 
+
+    btn = Object(display_width + random.randrange(2500,3200), random.randrange(280, 450),30,  30, 4, bullet_img[0])
+
     btn_bullets = []
+    ms_bullets = []
     while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -279,30 +346,36 @@ def game_cycle():
         #move_objects(stone,cloud)
         dino.draw()
         print_text("scores:" + str(scores),700,10)
-
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             dino.make_jump = True
         if keys[pygame.K_ESCAPE]:
             pause()
 
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
         if not cooldown:
-            if keys[pygame.K_x]:
-                btn_bullets.append(Bullet(dino.x + dino.width - 35, dino.y + 50))
-                cooldown = 50
+            if (dino.bullets > 0):
+                if keys[pygame.K_x]:
+                    btn_bullets.append(Bullet(dino.x + dino.width - 35, dino.y + 50))
+                    cooldown = 50
+                    dino.bullets -= 1
+                elif click[0]:
+                    blt = Bullet(dino.x + dino.width - 35, dino.y + 50)
+                    blt.find_path(mouse[0],mouse[1])
+                    ms_bullets.append(blt)
+                    cooldown = 50
+                    dino.bullets -= 1
         else:
             cooldown -= 1
-
-        for bullet in btn_bullets:
-            if not bullet.move():
-                btn_bullets.remove(bullet)
-
+        #print(dino.bullets, cooldown)
         if dino.make_jump:
             dino.make_jump = True
             dino.jump()
             
         #pygame.draw.rect(display,(247,240,22),(user_x,user_y,user_width - 10,user_height))
-        
+        dino.shot(btn_bullets,ms_bullets, cactus_arr)
         clock.tick(70)
         if dino.check(cactus_arr):
                 #pygame.mixer.music.stop()
@@ -310,18 +383,20 @@ def game_cycle():
         count_scores(cactus_arr,dino)
         print_text("scores:" + str(scores),700,10)
         heart.move()
-        dino.hearts_plus(heart)
-        show_health()
+        btn.move()
+        dino.stat_plus(heart,HEART)
+        dino.stat_plus(btn,BULLET)
+        show_status(health_img, 20, dino.health)
+        show_status(bullet_img[0], 60, dino.bullets)
 
         pygame.display.update()
     return game_over()
 
-def show_health():
-    global dino
+def show_status(img, y, count):
     show = 0
     x = 20
-    while show != dino.health:
-        display.blit(health_img,(x, 20))
+    while show != count:
+        display.blit(img,(x, y))
         x += 30
         show += 1
 
@@ -341,19 +416,19 @@ def create_cactus_arr(array):
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 50, height - 10, width, 4, img))
+    array.append(Object(display_width + 50, display_height - 110, width, height, 4, img))
 
     choice = random.randrange(0,3)
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 300, height - 10,  width, 4, img))
+    array.append(Object(display_width + 300, display_height - 110,  width, height, 4, img))
 
     choice = random.randrange(0,3)
     img = cactus_img[choice]
     width = cactus_options[choice * 2]
     height = cactus_options[choice*2+1]
-    array.append(Object(display_width + 600, height - 10, width, 4, img))
+    array.append(Object(display_width + 600, display_height - 110, width, height, 4, img))
 
 def find_radius(array):
     maximum = max(array[0].x,array[1].x,array[2].x)
